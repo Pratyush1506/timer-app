@@ -1,5 +1,12 @@
 import React, { useRef, useState } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View, Button } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Button,
+} from "react-native";
 import TimerCard from "./TimerCard";
 import { Category } from "@/interfaces";
 import { useAppState } from "@/context/TimerProvider";
@@ -27,10 +34,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({ item }) => {
     setExpanded(!expanded);
   };
 
-  // Improved Animation: Opacity + Dynamic Height
   const heightInterpolation = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, categoryTimers.length * 230], // Auto-calculates height
+    outputRange: [0, categoryTimers.length * 310], 
   });
 
   const opacityInterpolation = animation.interpolate({
@@ -40,31 +46,46 @@ const CategorySection: React.FC<CategorySectionProps> = ({ item }) => {
 
   return (
     <View style={styles.container}>
-      {/* Category Header */}
       <TouchableOpacity onPress={toggleExpand} style={styles.header}>
         <Text style={styles.title}>{item.name}</Text>
       </TouchableOpacity>
-
-      {/* Bulk Actions */}
       {expanded && (
         <View style={styles.bulkActions}>
           <Button
             title="Start All"
-            onPress={() => dispatch({ type: "START_ALL_TIMERS", payload: { categoryName: item.name } })}
+            onPress={() =>
+              dispatch({
+                type: "START_ALL_TIMERS",
+                payload: { categoryName: item.name },
+              })
+            }
           />
           <Button
             title="Pause All"
-            onPress={() => dispatch({ type: "PAUSE_ALL_TIMERS", payload: { categoryName: item.name } })}
+            onPress={() =>
+              dispatch({
+                type: "PAUSE_ALL_TIMERS",
+                payload: { categoryName: item.name },
+              })
+            }
           />
           <Button
             title="Reset All"
-            onPress={() => dispatch({ type: "RESET_ALL_TIMERS", payload: { categoryName: item.name } })}
+            onPress={() =>
+              dispatch({
+                type: "RESET_ALL_TIMERS",
+                payload: { categoryName: item.name },
+              })
+            }
           />
         </View>
       )}
 
-      {/* Collapsible Content */}
-      <Animated.View style={[styles.content, { height: heightInterpolation, opacity: opacityInterpolation }]}>
+      <Animated.View
+        style={[
+          styles.content,
+          { height: heightInterpolation, opacity: opacityInterpolation },
+        ]}>
         {categoryTimers.map((timer) => (
           <TimerCard key={timer.id} item={timer} />
         ))}
@@ -96,7 +117,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     padding: 10,
-    backgroundColor: "#e9e9e9",
   },
   content: {
     overflow: "hidden",

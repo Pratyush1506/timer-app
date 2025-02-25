@@ -4,14 +4,13 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
-
   return (
     <Tabs>
       <Tabs.Screen
         name="index"
         options={{
           headerTitle: "Home",
-          
+          tabBarLabel: "Home",
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
               name={focused ? "home-sharp" : "home-outline"}
@@ -24,6 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
+          tabBarLabel: "History",
           headerTitle: "History",
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
@@ -38,6 +38,7 @@ export default function TabLayout() {
         name="createTimer"
         options={{
           headerTitle: "Create Timer",
+          tabBarLabel: "Create Timer",
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
               name={focused ? "add-circle-sharp" : "add-circle-outline"}
@@ -50,5 +51,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-

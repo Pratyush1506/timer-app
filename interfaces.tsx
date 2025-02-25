@@ -5,6 +5,7 @@ export interface Timer {
   remainingTime: number;
   category: string;
   status:string | "running" | "paused" | "completed";
+  hasHalfwayAlert: boolean
 }
 
 export interface Category {

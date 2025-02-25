@@ -1,29 +1,41 @@
 import { useAppState } from "@/context/TimerProvider";
-import { StyleSheet, View, Text } from "react-native";
+import { ScrollView, StyleSheet, View, Text } from "react-native";
 
 export default function TabTwoScreen() {
   const { state } = useAppState();
   return (
-    <View>
-      <Text>Completed Timers:</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Completed Timers:</Text>
       {state.history.map((timer, index) => (
-        <Text key={index}>
-          {timer.name} - {timer.category}
-        </Text>
+        <View style={styles.historyLogTextContainer} key={index}>
+          <Text style={styles.historyLogText}>Category: {timer.category}</Text>
+          <Text style={styles.historyLogText}>Timer: {timer.name}</Text>
+        </View>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
+  container: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
+  title: {
+    fontSize: 20,
+    textAlign: "center",
+  },
+  historyLogTextContainer: {
+    padding: 10,
+    alignItems: "center",
+    borderColor: "black",
+    borderWidth: 1,
+    borderStyle: "solid",
+    marginBottom: 10,
+    width: "auto",
+  },
+  historyLogText: {
+    fontSize: 16,
   },
 });

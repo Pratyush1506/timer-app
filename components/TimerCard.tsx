@@ -1,7 +1,18 @@
 import { useAppState } from "@/context/TimerProvider";
 import { Timer } from "@/interfaces";
 import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  StyleSheet,
+  Text,
+  View,
+  Switch,
+  Modal,
+  Platform,
+  Alert,
+} from "react-native";
+import * as Progress from "react-native-progress";
+import * as Notifications from "expo-notifications";
 
 interface TimerCardProps {
   item: Timer;
@@ -9,39 +20,42 @@ interface TimerCardProps {
 
 const TimerCard: React.FC<TimerCardProps> = ({ item }) => {
   const { dispatch } = useAppState();
-  const { id, name, duration, category, remainingTime, status } = item;
-  const [timeLeft, setTimeLeft] = useState(remainingTime);
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const { id, name, duration, remainingTime, status, hasHalfwayAlert } = item;
+  const [timeLeft, setTimeLeft] = useState(remainingTime ?? duration);
+  const [halfwayAlertTriggered, setHalfwayAlertTriggered] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
+  const sendHalfwayNotification = async () => {
+    if (Platform.OS === "web") {
+      console.log("Web alert should trigger now!"); 
+      Alert.alert("Halfway Alert", "Your timer is halfway done!");
+      return;
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Halfway Alert",
+        body: "Your timer is halfway done!",
+      },
+      trigger: null,
+    });
+  };
   useEffect(() => {
-    setTimeLeft(item.remainingTime); // Sync with global state when reset
+    setTimeLeft(remainingTime);
+    setHalfwayAlertTriggered(false);
   }, [remainingTime, status]);
 
-  // useEffect(() => {
-  //   if (status === "running" && timeLeft > 0) {
-  //     const interval = setInterval(() => {
-  //       setTimeLeft((prevTime) => {
-  //         if (prevTime <= 1) {
-  //           clearInterval(interval);
-  //           dispatch({
-  //             type: "PAUSE_TIMER",
-  //             payload: { timerId: id, remainingTime: duration },
-  //           });
-  //           console.log("Timer Completed");
-  //           return 0;
-  //         }
-  //         return prevTime - 1;
-  //       });
-  //     }, 1000);
-  //     setInttervalId(interval);
-  //   } else {
-  //     if (intervalId) clearInterval(intervalId);
-  //   }
-
-  //   return () => {
-  //     if (intervalId) clearInterval(intervalId);
-  //   };
-  // }, [status]);
+  useEffect(() => {
+    if (status === "paused") {
+      dispatch({
+        type: "UPDATE_REMAINING_TIME",
+        payload: {
+          timerId: id,
+          remainingTime: timeLeft === 0 ? duration : timeLeft,
+        },
+      });
+    }
+  }, [status]);
 
   useEffect(() => {
     if (status === "running" && timeLeft > 0) {
@@ -50,52 +64,70 @@ const TimerCard: React.FC<TimerCardProps> = ({ item }) => {
           if (prevTime <= 1) {
             clearInterval(interval);
             setTimeLeft(duration);
-            setTimeout(() => {
-              dispatch({
-                type: "TIMER_COMPLETE",
-                payload: { timerId: id },
-              });
-              console.log("Timer Completed and Reset");
-            }, 0);
+            setModalVisible(true); 
+            dispatch({
+              type: "TIMER_COMPLETE",
+              payload: { timerId: id },
+            });
             return 0;
           }
+
+          if (
+            hasHalfwayAlert &&
+            !halfwayAlertTriggered &&
+            prevTime === Math.floor(duration / 2)
+          ) {
+            sendHalfwayNotification();
+            setHalfwayAlertTriggered(true);
+          }
+
           return prevTime - 1;
         });
       }, 1000);
-      setIntervalId(interval);
 
-      return () => {
-        clearInterval(interval); // ✅ Ensures the interval stops when unmounting or pausing
-      };
+      return () => clearInterval(interval);
     }
-  }, [status]);
+  }, [status, timeLeft]);
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{name}</Text>
       <View style={styles.remainingTimeContainer}>
-        <Text style={styles.cardInfo}>Remaing Time </Text>
+        <Text style={styles.cardInfo}>Remaining Time</Text>
         <Text style={styles.timeLeftText}>{timeLeft} sec</Text>
       </View>
+
+      <Progress.Bar
+        progress={timeLeft / duration}
+        width={250}
+        height={10}
+        color={status === "running" ? "#007bff" : "gray"}
+        borderRadius={5}
+        style={styles.progressBar}
+      />
       <Text>Status: {status} </Text>
+
+      <View style={styles.toggleContainer}>
+        <Text>Halfway Alert:</Text>
+        <Switch
+          value={hasHalfwayAlert}
+          onValueChange={() =>
+            dispatch({
+              type: "TOGGLE_HALFWAY_ALERT",
+              payload: { timerId: id },
+            })
+          }
+        />
+      </View>
 
       <View style={styles.actionButtons}>
         <Button
           title={status === "running" ? "Pause" : "Start"}
           onPress={() => {
-            if (status === "running") {
-              // Dispatch PAUSE_TIMER with remaining time
-              dispatch({
-                type: "PAUSE_TIMER",
-                payload: { timerId: id, remainingTime: timeLeft },
-              });
-            } else {
-              // Dispatch START_TIMER without remaining time
-              dispatch({
-                type: "START_TIMER",
-                payload: { timerId: id }, // ✅ Matches START_TIMER shape
-              });
-            }
+            dispatch({
+              type: status === "running" ? "PAUSE_TIMER" : "START_TIMER",
+              payload: { timerId: id },
+            });
           }}
         />
         <Button
@@ -105,6 +137,17 @@ const TimerCard: React.FC<TimerCardProps> = ({ item }) => {
           }}
         />
       </View>
+
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              You have completed the {name} timer!
+            </Text>
+            <Button title="OK" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -113,7 +156,7 @@ export default TimerCard;
 
 const styles = StyleSheet.create({
   card: {
-    height: 230,
+    height: 300,
     width: 350,
     padding: 10,
     gap: 8,
@@ -132,6 +175,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   timeLeftText: {
+    textAlign: "center",
     fontSize: 30,
   },
   cardInfo: {
@@ -142,5 +186,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     marginTop: 10,
+  },
+  progressBar: {
+    marginTop: 10,
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });

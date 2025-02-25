@@ -1,5 +1,4 @@
 import { Category, Timer } from "@/interfaces";
-import { v4 as uuidv4 } from "uuid";
 import React, {
   createContext,
   ReactNode,
@@ -18,13 +17,18 @@ export interface AppState {
 export type Action =
   | { type: "ADD_TIMER"; payload: { categoryName: string; timer: Timer } }
   | { type: "START_TIMER"; payload: { timerId: string } }
-  | { type: "PAUSE_TIMER"; payload: { timerId: string; remainingTime: number } }
+  | { type: "PAUSE_TIMER"; payload: { timerId: string } }
   | { type: "RESET_TIMER"; payload: { timerId: string } }
   | { type: "TIMER_COMPLETE"; payload: { timerId: string } }
   | { type: "LOAD_STATE"; payload: AppState }
   | { type: "START_ALL_TIMERS"; payload: { categoryName: string } }
   | { type: "PAUSE_ALL_TIMERS"; payload: { categoryName: string } }
-  | { type: "RESET_ALL_TIMERS"; payload: { categoryName: string } };
+  | { type: "RESET_ALL_TIMERS"; payload: { categoryName: string } }
+  | {
+      type: "UPDATE_REMAINING_TIME";
+      payload: { timerId: string; remainingTime: number };
+    }
+  | { type: "TOGGLE_HALFWAY_ALERT"; payload: { timerId: string } };
 
 export const initialState: AppState = {
   timers: [],
@@ -71,13 +75,11 @@ export const timerReducer = (state: AppState, action: Action): AppState => {
     }
 
     case "PAUSE_TIMER": {
-      const { timerId, remainingTime } = action.payload;
+      const { timerId } = action.payload;
       newState = {
         ...state,
         timers: state.timers.map((timer) =>
-          timer.id === timerId
-            ? { ...timer, status: "paused", remainingTime }
-            : timer
+          timer.id === timerId ? { ...timer, status: "paused" } : timer
         ),
       };
       break;
@@ -91,6 +93,18 @@ export const timerReducer = (state: AppState, action: Action): AppState => {
           timer.id === timerId
             ? { ...timer, remainingTime: timer.duration, status: "paused" }
             : timer
+        ),
+      };
+      break;
+    }
+
+    case "UPDATE_REMAINING_TIME": {
+      const { timerId, remainingTime } = action.payload;
+
+      newState = {
+        ...state,
+        timers: state.timers.map((timer) =>
+          timer.id === timerId ? { ...timer, remainingTime } : timer
         ),
       };
       break;
@@ -114,8 +128,69 @@ export const timerReducer = (state: AppState, action: Action): AppState => {
       break;
     }
 
+    case "START_ALL_TIMERS": {
+      const { categoryName } = action.payload;
+
+      newState = {
+        ...state,
+        timers: state.timers.map((timer) =>
+          state.categories.some(
+            (cat) => cat.name === categoryName && cat.timers.includes(timer.id)
+          )
+            ? { ...timer, status: "running" }
+            : timer
+        ),
+      };
+      break;
+    }
+
+    case "PAUSE_ALL_TIMERS": {
+      const { categoryName } = action.payload;
+
+      newState = {
+        ...state,
+        timers: state.timers.map((timer) =>
+          state.categories.some(
+            (cat) => cat.name === categoryName && cat.timers.includes(timer.id)
+          )
+            ? { ...timer, status: "paused" }
+            : timer
+        ),
+      };
+      break;
+    }
+
+    case "RESET_ALL_TIMERS": {
+      const { categoryName } = action.payload;
+
+      newState = {
+        ...state,
+        timers: state.timers.map((timer) =>
+          state.categories.some(
+            (cat) => cat.name === categoryName && cat.timers.includes(timer.id)
+          )
+            ? { ...timer, remainingTime: timer.duration, status: "paused" }
+            : timer
+        ),
+      };
+      break;
+    }
+
+    case "TOGGLE_HALFWAY_ALERT": {
+      const { timerId } = action.payload;
+      newState = {
+        ...state,
+        timers: state.timers.map((timer) =>
+          timer.id === action.payload.timerId
+            ? { ...timer, hasHalfwayAlert: !timer.hasHalfwayAlert }
+            : timer
+        ),
+      };
+      break;
+    }
+
     case "LOAD_STATE": {
-      return action.payload; // Load state from AsyncStorage
+      return action.payload;
     }
 
     default:
@@ -149,22 +224,6 @@ export const StateProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(timerReducer, initialState);
 
-  // Load state from AsyncStorage when the app starts
-  // useEffect(() => {
-  //   const loadState = async () => {
-  //     try {
-  //       const storedState = await AsyncStorage.getItem(STORAGE_KEY);
-  //       if (storedState) {
-  //         dispatch({ type: "LOAD_STATE", payload: JSON.parse(storedState) });
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to load state:", error);
-  //     }
-  //   };
-
-  //   loadState();
-  // }, []);
-
   useEffect(() => {
     const loadState = async () => {
       try {
@@ -172,12 +231,11 @@ export const StateProvider: React.FC<{ children: ReactNode }> = ({
         if (storedState) {
           const parsedState: AppState = JSON.parse(storedState);
 
-          // 🔹 Ensure 'status' is correctly typed as "running" | "paused" | "completed"
           const fixedState: AppState = {
             ...parsedState,
             timers: parsedState.timers.map((timer) => ({
               ...timer,
-              status: isValidStatus(timer.status) ? timer.status : "paused", // 🔥 Explicitly cast
+              status: isValidStatus(timer.status) ? timer.status : "paused", 
             })),
           };
 
