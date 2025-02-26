@@ -26,16 +26,17 @@ const TimerCard: React.FC<TimerCardProps> = ({ item }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const sendHalfwayNotification = async () => {
+    const notificationText = `Halfway Alert, Your ${name} timer is halfway done! `;
+
     if (Platform.OS === "web") {
-      console.log("Web alert should trigger now!"); 
-      Alert.alert("Halfway Alert", "Your timer is halfway done!");
+      Alert.alert(notificationText);
       return;
     }
 
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Halfway Alert",
-        body: "Your timer is halfway done!",
+        body: notificationText,
       },
       trigger: null,
     });
@@ -64,7 +65,7 @@ const TimerCard: React.FC<TimerCardProps> = ({ item }) => {
           if (prevTime <= 1) {
             clearInterval(interval);
             setTimeLeft(duration);
-            setModalVisible(true); 
+            setModalVisible(true);
             dispatch({
               type: "TIMER_COMPLETE",
               payload: { timerId: id },
