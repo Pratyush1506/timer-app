@@ -1,50 +1,82 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Pipeline Builder and DAG Finder 
 
-## Get started
+The React Native Timer App allows users to create, manage, and interact with multiple customizable timers. The app features categories, progress visualization, and bulk actions.
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
 
-2. Start the app
+## Features
 
-   ```bash
-    npx expo start
-   ```
+- **Add Timer**: Create timers with a name, duration, and category.
+- **Timer List with Grouping**:View timers organized by category, with expandable/collapsible sections.
+- **Timer Management**:  Start, pause, reset, and complete timers.
+- **Progress Visualization**: View remaining time using a progress bar or percentage.
+- **Bulk Actions**: Start, pause, and reset all timers within a category.
+- **User Feedback**: Receive on-screen notifications when a timer completes.
+- **Timer History**: Track completed timers with a log.
+- **Customizable Alerts**: Set optional halfway alerts for timers.
 
-In the output, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Tech Stack
+- **Frontend**: React
+- **Backend**: Python, FastAPI
+## Getting Started
 
-## Get a fresh project
+### Prerequisites
 
-When you're ready, run:
+- Node.js installed
+- Expo CLI installed (npm install -g expo-cli)
+- Expo Go app installed on your phone (available on App Store and Play Store)
+
+Clone the project
 
 ```bash
-npm run reset-project
+  git clone https://github.com/Pratyush1506/timer-app.git
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**Go to the project directory**
 
-## Learn more
+```bash
+  cd my-project
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+**Inside root folder run**
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm install
+npx expo start
+```
 
-## Join the community
+Scan the QR code to run the application in expo go app.
 
-Join our community of developers creating universal apps.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Running the App on Android (APK)
+
+Follow these steps to install and run the app using the APK file on your Android device.
+
+### 1️⃣ Download the APK
+
+Click the link below to download the APK file:
+
+🔗 [Download APK](https://drive.google.com/drive/folders/1l7P7oXmzFx2GgVtDTZgHpIZVSYfyK09W?usp=sharing)
+
+### 2️⃣ Install the APK
+
+- Locate the downloaded APK file on your device.
+- Tap on the file to start installation.
+- If prompted, enable **"Install from Unknown Sources"** in your phone's settings.
+- Complete the installation process.
+
+### 3️⃣ Enable Notifications (Recommended)
+
+When you open the app for the first time, it will ask for **notification permission**.  
+- Tap **"Allow"** to receive timer alerts and halfway notifications.  
+- If you accidentally deny it, you can enable it manually:
+  - **Go to:** Settings > Apps > timer-app > Notifications  
+  - **Enable:** Allow Notifications 
+
+### 4️⃣ Open the App & Start Using Timers 🎉
+
+- Launch the app from your home screen or app drawer.
+- Create, manage, and track multiple timers with ease!
